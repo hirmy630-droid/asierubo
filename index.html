@@ -309,13 +309,13 @@
                             <option value="70">125</option>
                         </select>
                     </div>
-                    <div class="calc-cell span-6" id="cell-dist-h" onclick="focusInput('dist-input-h')">
-                        <span class="input-label-left">直線距離</span>
-                        <div id="dist-input-h" class="input-value">0</div>
+                    <div class="calc-cell span-3" id="cell-dist-h" onclick="focusInput('dist-input-h')">
+                        <span class="input-label-left">直線</span>
+                        <div id="dist-input-h" class="input-value input-value-sm">0</div>
                     </div>
-                    <div class="calc-cell span-6" id="cell-dist-a" onclick="focusInput('dist-input-a')">
-                        <span class="input-label-left">移動寸法</span>
-                        <div id="dist-input-a" class="input-value">0</div>
+                    <div class="calc-cell span-3" id="cell-dist-a" onclick="focusInput('dist-input-a')">
+                        <span class="input-label-left">移動</span>
+                        <div id="dist-input-a" class="input-value input-value-sm">0</div>
                     </div>
                 </div>
             </div>
@@ -377,7 +377,7 @@
     let currentTab = '90';
     let focusedInputId = 'main-input-90';
     let isOverwriteMode = true;
-    const storageKey = 'kyowa_leg_elbow_v4';
+    const storageKey = 'kyowa_leg_elbow_v5';
     
     const inputs = {
         'leg-input-90': '', 'main-input-90': '',
@@ -418,11 +418,18 @@
         let val = inputs[focusedInputId] || '';
         
         if (key === 'clear') {
+            if (currentTab === 'dist') {
+                clearDistFields(); // AC: すべてクリア
+                return;
+            }
             val = '';
             isOverwriteMode = false;
         } else if (key === 'backspace') {
-            if (currentTab === 'dist') { clearDistFields(); return; }
-            val = val.toString().slice(0, -1);
+            if (currentTab === 'dist') {
+                val = ''; // C: 現在の枠をクリア
+            } else {
+                val = val.toString().slice(0, -1); // ⇦: 1文字消去
+            }
             isOverwriteMode = false;
         } else if (key === 'enter') {
             handleEnter(); return;
@@ -445,6 +452,7 @@
     function clearDistFields() {
         ['dist-input-b', 'dist-input-h', 'dist-input-a'].forEach(id => { inputs[id] = ''; updateDisplay(id, ''); });
         distCalc();
+        showToast("すべての入力をクリアしました");
         isOverwriteMode = true;
     }
 
@@ -488,7 +496,8 @@
         document.getElementById('result-label').innerText = isDist ? "芯-芯寸法" : "切寸法";
         
         const delBtn = document.getElementById('delete-btn-label');
-        delBtn.innerText = isDist ? 'AC' : '⇦';
+        // 距離計算モードのとき、上のボタンを「C」に設定
+        delBtn.innerText = isDist ? 'C' : '⇦';
 
         if (isDist) {
             focusInput('dist-input-b');
