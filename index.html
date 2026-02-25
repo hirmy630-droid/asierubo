@@ -377,7 +377,7 @@
     let currentTab = '90';
     let focusedInputId = 'main-input-90';
     let isOverwriteMode = true;
-    const storageKey = 'kyowa_leg_elbow_v5';
+    const storageKey = 'kyowa_leg_elbow_v6';
     
     const inputs = {
         'leg-input-90': '', 'main-input-90': '',
@@ -419,16 +419,16 @@
         
         if (key === 'clear') {
             if (currentTab === 'dist') {
-                clearDistFields(); // AC: すべてクリア
+                clearDistFields();
                 return;
             }
             val = '';
             isOverwriteMode = false;
         } else if (key === 'backspace') {
             if (currentTab === 'dist') {
-                val = ''; // C: 現在の枠をクリア
+                val = ''; 
             } else {
-                val = val.toString().slice(0, -1); // ⇦: 1文字消去
+                val = val.toString().slice(0, -1);
             }
             isOverwriteMode = false;
         } else if (key === 'enter') {
@@ -452,7 +452,7 @@
     function clearDistFields() {
         ['dist-input-b', 'dist-input-h', 'dist-input-a'].forEach(id => { inputs[id] = ''; updateDisplay(id, ''); });
         distCalc();
-        showToast("すべての入力をクリアしました");
+        showToast("入力をクリアしました");
         isOverwriteMode = true;
     }
 
@@ -496,7 +496,6 @@
         document.getElementById('result-label').innerText = isDist ? "芯-芯寸法" : "切寸法";
         
         const delBtn = document.getElementById('delete-btn-label');
-        // 距離計算モードのとき、上のボタンを「C」に設定
         delBtn.innerText = isDist ? 'C' : '⇦';
 
         if (isDist) {
@@ -600,15 +599,19 @@
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
                 </button>
                 <div class="flex-1">
-                    <div class="text-[12px] font-black text-zinc-500 mb-0">${h.size} / 足:${formatNum(h.leg)} 芯:${formatNum(h.input)}</div>
+                    <!-- ラベルを14px、シルバーに変更 -->
+                    <div class="text-[14px] font-black text-[var(--ios-silver)] mb-0.5">${h.size} / 足:${formatNum(h.leg)} 芯:${formatNum(h.input)}</div>
                     <div class="text-xl font-black">${h.result}</div>
                 </div>
+                <!-- ロックされている場合は削除ボタンを隠す -->
+                ${!h.locked ? `
                 <button onclick="deleteHistoryItem(${h.id})" class="p-2 text-zinc-500">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                         <line x1="18" y1="6" x2="6" y2="18"></line>
                         <line x1="6" y1="6" x2="18" y2="18"></line>
                     </svg>
-                </button>`;
+                </button>
+                ` : '<div class="p-2 w-[36px]"></div>'}`;
             list.appendChild(div);
         });
     }
