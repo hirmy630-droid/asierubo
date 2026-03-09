@@ -13,7 +13,6 @@
             --ios-orange: #ff9f0a;
             --accent-90: #5e5ce6;
             --accent-45: #30d158;
-            --accent-dist: #007aff;
             --ios-silver: #c7c7cc;
             --ios-silver-dark: #9a9a9e;
             --label-gray: #b0b0b5;
@@ -104,7 +103,6 @@
 
         .mode-90 #nav-90.active { border-color: var(--accent-90); color: #a2a0ff; }
         .mode-45 #nav-45.active { border-color: var(--accent-45); color: #63ff8b; }
-        .mode-dist #nav-dist.active { border-color: var(--accent-dist); color: #72b5ff; }
 
         /* スワイプコンテナ */
         #swipe-container {
@@ -139,7 +137,6 @@
 
         .mode-90 .result-box { background: var(--accent-90); }
         .mode-45 .result-box { background: var(--accent-45); }
-        .mode-dist .result-box { background: var(--accent-dist); }
 
         /* セルグリッド - テンキーと連結 */
         .cell-grid {
@@ -163,7 +160,6 @@
             justify-content: space-between;
             position: relative;
             grid-column: span 3;
-            /* 細いシルバーのボーダー */
             border: 0.5px solid var(--unfocused-border);
         }
 
@@ -241,7 +237,7 @@
         .key-btn.orange { background: var(--ios-orange); font-weight: 700; }
         .key-btn.gray { background: #2c2c2e; color: var(--label-gray); font-size: 18px; font-weight: 600; }
 
-        /* 履歴・図面 */
+        /* 履歴 */
         .history-area { padding: 12px; background: #000; }
         .history-header {
             font-size: 15px;
@@ -256,11 +252,6 @@
             display: flex; align-items: center; gap: 12px;
         }
         .history-item.is-locked { border: 1px solid var(--ios-orange); border-radius: 8px; margin-bottom: 4px; }
-
-        .diagram-container {
-            background: #09090b; padding: 15px; margin: 12px;
-            border: 1px solid var(--ios-border); border-radius: 16px;
-        }
 
         #toast {
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
@@ -319,7 +310,6 @@
                 <div class="tab-container">
                     <button class="tab-button active" id="nav-90" onclick="switchTab('90')">足付 90°エルボ</button>
                     <button class="tab-button" id="nav-45" onclick="switchTab('45')">足付 45°エルボ</button>
-                    <button class="tab-button" id="nav-dist" onclick="switchTab('dist')">距離計算</button>
                 </div>
             </div>
 
@@ -332,12 +322,12 @@
                 </div>
             </div>
 
-            <!-- 足付パネル -->
+            <!-- エルボパネル -->
             <div id="section-elbow">
                 <div class="cell-grid">
                     <div class="calc-cell">
                         <span class="input-label-left">サイズ</span>
-                        <select id="elbow-size" class="input-value" onchange="syncSize(this.value)">
+                        <select id="elbow-size" class="input-value" onchange="elbowCalc()">
                             <option value="75">75</option>
                             <option value="100" selected>100</option>
                             <option value="125">125</option>
@@ -352,35 +342,8 @@
                         <div id="leg-input" class="input-value">0</div>
                     </div>
                     <div class="calc-cell span-4 focused" id="cell-main-input" onclick="focusInput('main-input')">
-                        <!-- ラベルを 芯〜芯 から 芯〜壁 に変更 -->
                         <span class="input-label-left">芯〜壁</span>
                         <div id="main-input" class="input-value">0</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 距離計算パネル -->
-            <div id="section-dist" class="hidden">
-                <div class="cell-grid">
-                    <div class="calc-cell span-3" id="cell-dist-b" onclick="focusInput('dist-input-b')">
-                        <span class="input-label-left">足長</span>
-                        <div id="dist-input-b" class="input-value">0</div>
-                    </div>
-                    <div class="calc-cell span-3">
-                        <span class="input-label-left">エルボ</span>
-                        <select id="dist-select-x" class="input-value" onchange="syncSize(this.options[this.selectedIndex].text)">
-                            <option value="45">75</option>
-                            <option value="57" selected>100</option>
-                            <option value="70">125</option>
-                        </select>
-                    </div>
-                    <div class="calc-cell span-3" id="cell-dist-h" onclick="focusInput('dist-input-h')">
-                        <span class="input-label-left">直線</span>
-                        <div id="dist-input-h" class="input-value">0</div>
-                    </div>
-                    <div class="calc-cell span-3" id="cell-dist-a" onclick="focusInput('dist-input-a')">
-                        <span class="input-label-left">移動</span>
-                        <div id="dist-input-a" class="input-value">0</div>
                     </div>
                 </div>
             </div>
@@ -407,30 +370,6 @@
                 <button class="key-btn" id="dot-btn" onclick="pressKey('.')">.</button>
             </div>
 
-            <div id="dist-diagram-wrapper" class="diagram-container hidden">
-                <svg viewBox="0 0 360 210" class="w-full h-auto" xmlns="http://www.w3.org/2000/svg">
-                    <line x1="100" y1="10" x2="160" y2="10" stroke="white" stroke-width="2" />
-                    <line x1="140" y1="10" x2="140" y2="25" stroke="white" stroke-width="2" />
-                    <circle cx="140" cy="45" r="16.2" fill="none" stroke="white" stroke-width="2" />
-                    <line x1="140" y1="45" x2="280" y2="125" stroke="white" stroke-width="3" />
-                    <rect x="175" y="60" width="80" height="34" rx="6" fill="black" stroke="white" stroke-width="1.5" />
-                    <text id="dist-diagram-result" x="215" y="84" fill="white" font-size="22" font-weight="700" text-anchor="middle">---</text>
-                    <circle cx="280" cy="125" r="16.2" fill="none" stroke="white" stroke-width="2" />
-                    <line x1="100" y1="10" x2="140" y2="10" stroke="#72b5ff" stroke-width="1" opacity="0.5" />
-                    <line x1="100" y1="125" x2="280" y2="125" stroke="#72b5ff" stroke-width="1" opacity="0.5" />
-                    <line x1="100" y1="10" x2="100" y2="125" stroke="#72b5ff" stroke-width="2" />
-                    <line x1="95" y1="10" x2="105" y2="10" stroke="#72b5ff" stroke-width="2" />
-                    <line x1="95" y1="125" x2="105" y2="125" stroke="#72b5ff" stroke-width="2" />
-                    <text x="5" y="75" fill="#72b5ff" font-size="15" font-weight="bold">直線距離</text>
-                    <line x1="140" y1="45" x2="140" y2="155" stroke="#72b5ff" stroke-width="1" opacity="0.5" />
-                    <line x1="280" y1="125" x2="280" y2="155" stroke="#72b5ff" stroke-width="1" opacity="0.5" />
-                    <line x1="140" y1="155" x2="280" y2="155" stroke="#72b5ff" stroke-width="2" />
-                    <line x1="140" y1="150" x2="140" y2="160" stroke="#72b5ff" stroke-width="2" />
-                    <line x1="280" y1="150" x2="280" y2="160" stroke="#72b5ff" stroke-width="2" />
-                    <text x="210" y="195" fill="#72b5ff" font-size="15" font-weight="bold" text-anchor="middle">移動寸法</text>
-                </svg>
-            </div>
-
             <div id="history-area" class="history-area">
                 <div class="history-header">
                     <span>履歴</span>
@@ -447,13 +386,12 @@
     let currentTab = '90';
     let focusedInputId = 'main-input-90';
     let isOverwriteMode = true;
-    const storageKey = 'kyowa_leg_elbow_v8';
+    const storageKey = 'kyowa_leg_elbow_v9';
     const lastTabKey = 'kyowa_leg_last_tab';
     
     const inputs = {
         'leg-input-90': '', 'main-input-90': '',
-        'leg-input-45': '', 'main-input-45': '',
-        'dist-input-b': '', 'dist-input-h': '', 'dist-input-a': ''
+        'leg-input-45': '', 'main-input-45': ''
     };
 
     let histories = JSON.parse(localStorage.getItem(storageKey)) || [];
@@ -463,23 +401,6 @@
         "45": { 75: { d: 30, e: 65 }, 100: { d: 40, e: 80 }, 125: { d: 50, e: 103 } }
     };
     const sizeConstants = { "75": 45, "100": 57, "125": 70 };
-
-    function syncSize(val) {
-        const elbowSizeSelect = document.getElementById('elbow-size');
-        const distSizeSelect = document.getElementById('dist-select-x');
-        
-        elbowSizeSelect.value = val;
-        
-        for (let i = 0; i < distSizeSelect.options.length; i++) {
-            if (distSizeSelect.options[i].text === val) {
-                distSizeSelect.selectedIndex = i;
-                break;
-            }
-        }
-        
-        elbowCalc();
-        distCalc();
-    }
 
     function focusInput(id) {
         let internalId = id;
@@ -495,41 +416,26 @@
         isOverwriteMode = true;
 
         const enterLabel = document.getElementById('enter-btn-label');
-        if (currentTab === 'dist') {
-            enterLabel.innerText = (focusedInputId === 'dist-input-a') ? 'コピー' : '⏎';
-        } else {
-            enterLabel.innerText = (focusedInputId.startsWith('leg-input')) ? '⏎' : '保存';
-        }
+        enterLabel.innerText = (focusedInputId.startsWith('leg-input')) ? '⏎' : '保存';
     }
 
     async function pressKey(key) {
         let val = inputs[focusedInputId] || '';
         
         if (key === 'clear') {
-            if (currentTab === 'dist') {
-                clearDistFields();
-                return;
-            }
             val = '';
             isOverwriteMode = false;
         } else if (key === 'backspace') {
-            if (currentTab === 'dist') {
-                val = ''; 
-                isOverwriteMode = false;
-            } else {
-                try {
-                    const text = await navigator.clipboard.readText();
-                    const cleanText = text.replace(/[^0-9.]/g, '');
-                    if (cleanText) {
-                        val = cleanText;
-                        isOverwriteMode = false;
-                        showToast("貼り付けました");
-                    } else {
-                        openPasteModal(); return;
-                    }
-                } catch (err) {
+            try {
+                const text = await navigator.clipboard.readText();
+                const cleanText = text.replace(/[^0-9.]/g, '');
+                if (cleanText) {
+                    val = cleanText; isOverwriteMode = false; showToast("貼り付けました");
+                } else {
                     openPasteModal(); return;
                 }
+            } catch (err) {
+                openPasteModal(); return;
             }
         } else if (key === 'enter') {
             handleEnter(); return;
@@ -544,9 +450,7 @@
         inputs[focusedInputId] = val;
         const displayId = (focusedInputId.startsWith('main-input')) ? 'main-input' : (focusedInputId.startsWith('leg-input') ? 'leg-input' : focusedInputId);
         updateDisplay(displayId, val);
-        
-        if (currentTab === 'dist') distCalc();
-        else elbowCalc();
+        elbowCalc();
     }
 
     function openPasteModal() {
@@ -562,29 +466,16 @@
             inputs[focusedInputId] = cleanText;
             const displayId = (focusedInputId.startsWith('main-input')) ? 'main-input' : (focusedInputId.startsWith('leg-input') ? 'leg-input' : focusedInputId);
             updateDisplay(displayId, cleanText);
-            if (currentTab === 'dist') distCalc(); else elbowCalc();
+            elbowCalc();
             showToast("貼り付けました");
             isOverwriteMode = false;
         }
         closePasteModal();
     }
 
-    function clearDistFields() {
-        ['dist-input-b', 'dist-input-h', 'dist-input-a'].forEach(id => { inputs[id] = ''; updateDisplay(id, ''); });
-        distCalc();
-        showToast("入力をクリアしました");
-        isOverwriteMode = true;
-    }
-
     function handleEnter() {
-        if (currentTab === 'dist') {
-            if (focusedInputId === 'dist-input-b') focusInput('dist-input-h');
-            else if (focusedInputId === 'dist-input-h') focusInput('dist-input-a');
-            else copyResult();
-        } else {
-            if (focusedInputId.startsWith('leg-input')) focusInput('main-input');
-            else saveHistory();
-        }
+        if (focusedInputId.startsWith('leg-input')) focusInput('main-input');
+        else saveHistory();
     }
 
     function updateDisplay(id, val) {
@@ -610,33 +501,28 @@
         if(tabBtn) tabBtn.classList.add('active');
         document.body.className = `mode-${tabId}`;
 
-        const isDist = tabId === 'dist';
-        document.getElementById('section-elbow').classList.toggle('hidden', isDist);
-        document.getElementById('section-dist').classList.toggle('hidden', !isDist);
-        document.getElementById('dist-diagram-wrapper').classList.toggle('hidden', !isDist);
-        document.getElementById('history-area').classList.toggle('hidden', isDist);
-        document.getElementById('result-label').innerText = isDist ? "芯-芯寸法" : "切寸法";
-        
-        const delBtn = document.getElementById('delete-btn-label');
-        delBtn.innerText = isDist ? 'C' : '貼付';
-
-        if (isDist) {
-            focusInput('dist-input-h');
-            distCalc();
-        } else {
-            updateDisplay('leg-input', inputs[`leg-input-${tabId}`]);
-            updateDisplay('main-input', inputs[`main-input-${tabId}`]);
-            focusInput('main-input');
-            elbowCalc();
-            renderHistory();
-        }
+        updateDisplay('leg-input', inputs[`leg-input-${tabId}`]);
+        updateDisplay('main-input', inputs[`main-input-${tabId}`]);
+        focusInput('main-input');
+        elbowCalc();
+        renderHistory();
     }
+
+    let startX = 0;
+    const swipeArea = document.getElementById('swipe-container');
+    swipeArea.addEventListener('touchstart', e => startX = e.touches[0].clientX, {passive: true});
+    swipeArea.addEventListener('touchend', e => {
+        const diff = e.changedTouches[0].clientX - startX;
+        const tabs = ['90', '45'];
+        const idx = tabs.indexOf(currentTab);
+        if (diff > 80 && idx > 0) switchTab(tabs[idx - 1]);
+        else if (diff < -80 && idx < 1) switchTab(tabs[idx + 1]);
+    }, {passive: true});
 
     function elbowCalc() {
         const sizeEl = document.getElementById('elbow-size');
         if (!sizeEl) return;
         const size = sizeEl.value;
-
         const modeData = elbowData[currentTab];
         if (!modeData) return;
 
@@ -645,10 +531,12 @@
         const leg = parseFloat(inputs[`leg-input-${currentTab}`]) || 0;
         const main = parseFloat(inputs[`main-input-${currentTab}`]);
         const resEl = document.getElementById('result-val');
+        
         if (isNaN(main)) { 
-            if (currentTab !== 'dist') resEl.innerText = "---"; 
+            resEl.innerText = "---"; 
             return; 
         }
+        
         const c = main - (leg + sizeConstants[size]);
         let res;
         if (currentTab === "90") {
@@ -656,37 +544,7 @@
         } else {
             res = Math.ceil((c / Math.cos(45 * Math.PI / 180)) - ((e - d) * 2));
         }
-
-        if (currentTab !== 'dist') {
-            resEl.innerText = formatNum(res);
-        }
-    }
-
-    function distCalc() {
-        const b = parseFloat(inputs['dist-input-b']) || 0;
-        const h = parseFloat(inputs['dist-input-h']);
-        const a = parseFloat(inputs['dist-input-a']);
-        const x = parseFloat(document.getElementById('dist-select-x').value);
-        const resEl = document.getElementById('result-val');
-        const diagRes = document.getElementById('dist-diagram-result');
-        if (isNaN(h) || isNaN(a)) { 
-            if(currentTab === 'dist') resEl.innerText = "---"; 
-            diagRes.textContent = "---"; 
-            return; 
-        }
-        
-        const resultValNum = Math.ceil(Math.sqrt(Math.pow(h - (b + x), 2) + Math.pow(a, 2)));
-        const resFormattedStr = formatNum(resultValNum);
-        
-        if (currentTab === 'dist') {
-            resEl.innerText = resFormattedStr;
-        }
-        diagRes.textContent = resFormattedStr;
-
-        inputs['main-input-90'] = resultValNum.toString();
-        inputs['main-input-45'] = resultValNum.toString();
-        
-        elbowCalc();
+        resEl.innerText = formatNum(res);
     }
 
     function saveHistory() {
@@ -772,8 +630,8 @@
 
     window.onload = () => { 
         const lastTab = localStorage.getItem(lastTabKey);
-        if (lastTab && (lastTab === '90' || lastTab === '45' || lastTab === 'dist')) switchTab(lastTab);
-        else { focusInput('main-input'); elbowCalc(); renderHistory(); }
+        if (lastTab && (lastTab === '90' || lastTab === '45')) switchTab(lastTab);
+        else { switchTab('90'); }
     };
 </script>
 </body>
