@@ -57,7 +57,7 @@
             font-weight: 600;
         }
 
-        /* タブ (固定表示) - スリム化 */
+        /* タブ (固定表示) */
         .tab-wrapper {
             position: sticky;
             top: 0;
@@ -138,7 +138,7 @@
         .mode-90 .result-box { background: var(--accent-90); }
         .mode-45 .result-box { background: var(--accent-45); }
 
-        /* セルグリッド - テンキーと連結 */
+        /* セルグリッド */
         .cell-grid {
             display: grid;
             grid-template-columns: repeat(6, 1fr);
@@ -211,7 +211,7 @@
             direction: rtl;
         }
 
-        /* テンキー - セルと連結 */
+        /* テンキー */
         .keypad-container {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -261,24 +261,6 @@
         }
         #toast.show { opacity: 1; }
 
-        /* カスタム貼り付けダイアログ */
-        #paste-modal {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8); z-index: 2000;
-            display: flex; align-items: center; justify-content: center;
-        }
-        .modal-content {
-            background: #1c1c1e; width: 85%; max-width: 320px;
-            border-radius: 14px; padding: 20px; border: 1px solid #333;
-            text-align: center;
-        }
-        .modal-input {
-            width: 100%; background: #000; border: 1px solid var(--ios-orange);
-            color: white; font-size: 20px; padding: 10px; border-radius: 8px;
-            margin: 15px 0; outline: none; text-align: center;
-        }
-
-        .hidden { display: none !important; }
         .padding-bottom { padding-bottom: 40px; }
     </style>
 </head>
@@ -286,21 +268,9 @@
 
     <div id="toast">コピーしました</div>
 
-    <!-- 貼り付けフォールバック用モーダル -->
-    <div id="paste-modal" class="hidden">
-        <div class="modal-content">
-            <div class="text-sm font-bold text-gray-300">数値を貼り付けてください</div>
-            <input type="text" id="manual-paste-input" class="modal-input" placeholder="ここを長押しして貼付">
-            <div class="flex gap-2">
-                <button onclick="closePasteModal()" class="flex-1 py-3 rounded-lg bg-zinc-700 font-bold text-sm">キャンセル</button>
-                <button onclick="applyManualPaste()" class="flex-1 py-3 rounded-lg bg-orange-500 font-bold text-sm">決定</button>
-            </div>
-        </div>
-    </div>
-
     <div id="swipe-container">
         <div class="main-container">
-            <!-- ヘッダーデザイン -->
+            <!-- ヘッダー -->
             <div class="app-header">
                 <span class="title">足+エルボ計算</span>
                 <span class="subtitle">KYOWA ROOF</span>
@@ -313,7 +283,7 @@
                 </div>
             </div>
 
-            <!-- 結果枠 -->
+            <!-- 結果 -->
             <div class="result-box" onclick="copyResult()">
                 <div class="result-label-left" id="result-label">切寸法</div>
                 <div class="result-value">
@@ -322,7 +292,7 @@
                 </div>
             </div>
 
-            <!-- エルボパネル -->
+            <!-- 入力セル -->
             <div id="section-elbow">
                 <div class="cell-grid">
                     <div class="calc-cell">
@@ -348,12 +318,12 @@
                 </div>
             </div>
 
-            <!-- テンキー -->
+            <!-- キーパッド -->
             <div class="keypad-container">
                 <button class="key-btn" onclick="pressKey('7')">7</button>
                 <button class="key-btn" onclick="pressKey('8')">8</button>
                 <button class="key-btn" onclick="pressKey('9')">9</button>
-                <button class="key-btn gray" id="delete-btn-label" onclick="pressKey('backspace')">貼付</button>
+                <button class="key-btn gray" onclick="pressKey('backspace')">C</button>
                 
                 <button class="key-btn" onclick="pressKey('4')">4</button>
                 <button class="key-btn" onclick="pressKey('5')">5</button>
@@ -367,9 +337,10 @@
                 
                 <button class="key-btn" onclick="pressKey('0')">0</button>
                 <button class="key-btn" onclick="pressKey('00')">00</button>
-                <button class="key-btn" id="dot-btn" onclick="pressKey('.')">.</button>
+                <button class="key-btn" onclick="pressKey('.')">.</button>
             </div>
 
+            <!-- 履歴 -->
             <div id="history-area" class="history-area">
                 <div class="history-header">
                     <span>履歴</span>
@@ -386,7 +357,7 @@
     let currentTab = '90';
     let focusedInputId = 'main-input-90';
     let isOverwriteMode = true;
-    const storageKey = 'kyowa_leg_elbow_v9';
+    const storageKey = 'kyowa_leg_elbow_v10';
     const lastTabKey = 'kyowa_leg_last_tab';
     
     const inputs = {
@@ -419,24 +390,13 @@
         enterLabel.innerText = (focusedInputId.startsWith('leg-input')) ? '⏎' : '保存';
     }
 
-    async function pressKey(key) {
+    function pressKey(key) {
         let val = inputs[focusedInputId] || '';
         
-        if (key === 'clear') {
+        if (key === 'clear' || key === 'backspace') {
+            // AC または C キー: 現在の入力枠をクリア
             val = '';
-            isOverwriteMode = false;
-        } else if (key === 'backspace') {
-            try {
-                const text = await navigator.clipboard.readText();
-                const cleanText = text.replace(/[^0-9.]/g, '');
-                if (cleanText) {
-                    val = cleanText; isOverwriteMode = false; showToast("貼り付けました");
-                } else {
-                    openPasteModal(); return;
-                }
-            } catch (err) {
-                openPasteModal(); return;
-            }
+            isOverwriteMode = true;
         } else if (key === 'enter') {
             handleEnter(); return;
         } else if (key === '.') {
@@ -451,26 +411,6 @@
         const displayId = (focusedInputId.startsWith('main-input')) ? 'main-input' : (focusedInputId.startsWith('leg-input') ? 'leg-input' : focusedInputId);
         updateDisplay(displayId, val);
         elbowCalc();
-    }
-
-    function openPasteModal() {
-        document.getElementById('paste-modal').classList.remove('hidden');
-        const input = document.getElementById('manual-paste-input');
-        input.value = ''; input.focus();
-    }
-    function closePasteModal() { document.getElementById('paste-modal').classList.add('hidden'); }
-    function applyManualPaste() {
-        const text = document.getElementById('manual-paste-input').value;
-        const cleanText = text.replace(/[^0-9.]/g, '');
-        if (cleanText) {
-            inputs[focusedInputId] = cleanText;
-            const displayId = (focusedInputId.startsWith('main-input')) ? 'main-input' : (focusedInputId.startsWith('leg-input') ? 'leg-input' : focusedInputId);
-            updateDisplay(displayId, cleanText);
-            elbowCalc();
-            showToast("貼り付けました");
-            isOverwriteMode = false;
-        }
-        closePasteModal();
     }
 
     function handleEnter() {
@@ -508,6 +448,7 @@
         renderHistory();
     }
 
+    // スワイプ操作
     let startX = 0;
     const swipeArea = document.getElementById('swipe-container');
     swipeArea.addEventListener('touchstart', e => startX = e.touches[0].clientX, {passive: true});
@@ -555,7 +496,7 @@
         if (result === "---" || !inputs[mainKey]) return;
 
         histories.push({ id: Date.now(), mode: currentTab, size: sizeStr, leg: inputs[legKey] || '0', input: inputs[mainKey], result, locked: false });
-        if (histories.filter(h => !h.locked).length > 10) {
+        if (histories.filter(h => !h.locked).length > 12) {
             const idx = histories.findIndex(h => !h.locked);
             histories.splice(idx, 1);
         }
@@ -596,7 +537,7 @@
                 </div>
                 ${!h.locked ? `
                 <button onclick="deleteHistoryItem(${h.id})" class="p-2 text-zinc-500">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                         <line x1="18" y1="6" x2="6" y2="18"></line>
                         <line x1="6" y1="6" x2="18" y2="18"></line>
                     </svg>
